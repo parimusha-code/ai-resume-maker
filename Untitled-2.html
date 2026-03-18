@@ -1,0 +1,64 @@
+"use client";
+import { useState } from "react";
+import axios from "axios";
+
+export default function Home() {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [skills, setSkills] = useState("");
+  const [education, setEducation] = useState("");
+  const [resume, setResume] = useState("");
+
+  const handleGenerate = async () => {
+    const response = await axios.post("/api/generate-resume", {
+      name,
+      email,
+      skills,
+      education,
+    });
+    setResume(response.data.resume);
+  };
+
+  return (
+    <div className="p-8 max-w-xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">AI Resume Builder</h1>
+      <input
+        className="border p-2 w-full mb-2"
+        placeholder="Name"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+      <input
+        className="border p-2 w-full mb-2"
+        placeholder="Email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+      />
+      <input
+        className="border p-2 w-full mb-2"
+        placeholder="Skills (comma separated)"
+        value={skills}
+        onChange={(e) => setSkills(e.target.value)}
+      />
+      <input
+        className="border p-2 w-full mb-2"
+        placeholder="Education"
+        value={education}
+        onChange={(e) => setEducation(e.target.value)}
+      />
+      <button
+        className="bg-blue-500 text-white p-2 rounded mt-2"
+        onClick={handleGenerate}
+      >
+        Generate Resume
+      </button>
+
+      {resume && (
+        <div className="mt-6 p-4 border rounded bg-gray-100">
+          <h2 className="text-xl font-bold mb-2">Generated Resume</h2>
+          <pre>{resume}</pre>
+        </div>
+      )}
+    </div>
+);
+}

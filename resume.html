@@ -1,0 +1,83 @@
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import OpenAI from "openai";
+import { authOptions } from "@/lib/auth"; // Ensure this path matches your project
+
+const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY || "",
+});
+
+export async function POST(req: Request) {
+    try {
+        // 1. Authenticate the user
+        const session = await getServerSession(authOptions);
+        if (!session?.user) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        // 2. Validate API Key
+        if (!process.env.OPENAI_API_KEY) {
+            return NextResponse.json({ message: "AI Configuration missing" }, { status: 500 });
+        }
+
+        const body = await req.json();
+        const { resumeData, fieldToGenerate, index } = body;
+
+        let prompt = "";
+        const systemPrompt = `You are an expert resume writer. 
+        Return ONLY the rewritten content without any conversational filler or introductory text. 
+        For list items, provide them as a clean list without prefixes like 'Bullet 1:' or '-'.`;
+
+        // Create reusable context
+        const userContext = `
+            Context:
+            Skills: ${resumeData.skills?.join(', ') || 'N/A'}
+            Education: ${resumeData.education?.map((e: any) => `${e.degree} from ${e.institution}`).join('; ')}
+        `;
+
+        // 3. Define Prompts based on field
+        if (fieldToGenerate === "summary") {
+            prompt = `Write a 3-sentence professional summary using this data:
+                Details: ${JSON.stringify(resumeData.experience)}
+                ${userContext}`;
+        } 
+        else if (fieldToGenerate === "experience" && index !== undefined) {
+            const exp = resumeData.experience[index];
+            prompt = `Convert this job description into 3-4 high-impact resume bullet points. 
+                Use action verbs and quantify results if possible.
+                Role: ${exp.position} at ${exp.company}
+                Draft: ${exp.description}
+                ${userContext}`;
+        } 
+        else if (fieldToGenerate === "projects" && index !== undefined) {
+            const proj = resumeData.projects[index];
+            prompt = `Convert this project into 2-3 concise resume bullet points focusing on tech stack and impact.
+                Project: ${proj.name}
+                Draft: ${proj.description}
+                ${userContext}`;
+        } else {
+            return NextResponse.json({ message: "Invalid target" }, { status: 400 });
+        }
+
+        // 4. Call OpenAI (using gpt-4o-mini for better performance)
+        const response = await openai.chat.completions.create({
+            model: "gpt-4o-mini",
+            messages: [
+                { role: "system", content: systemPrompt },
+                { role: "user", content: prompt }
+            ],
+            temperature: 0.8, // Slightly higher for more creative/professional wording
+        });
+
+        const generatedText = response.choices[0]?.message?.content?.trim() || "";
+
+        return NextResponse.json({ generatedText }, { status: 200 });
+
+    } catch (error: any) {
+        console.error("AI Route Error:", error);
+        return NextResponse.json(
+            { message: error.message || "Internal Server Error" }, 
+            { status: 500 }
+        );
+    }
+}

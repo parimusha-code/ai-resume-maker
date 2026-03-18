@@ -1,0 +1,36 @@
+[
+  {
+    "id": "1773846765878",
+    "userId": "parimusha2005@gmail.com",
+    "name": "Parim Usha",
+    "email": "parimusha2005@gmail.com",
+    "phone": "9141122498",
+    "summary": "\"Enthusiastic Computer Science graduate with knowledge of programming, web development, and software engineering concepts. Skilled in building projects and eager to contribute to innovative solutions in a dynamic organization.”",
+    "experience": [
+      {
+        "company": "",
+        "position": "",
+        "description": "",
+        "startDate": "",
+        "endDate": ""
+      }
+    ],
+    "education": [
+      {
+        "institution": "",
+        "degree": "",
+        "field": "",
+        "graduationDate": ""
+      }
+    ],
+    "skills": [],
+    "projects": [
+      {
+        "name": "",
+        "description": ""
+      }
+    ],
+    "createdAt": "2026-03-18T15:12:45.878Z",
+    "updatedAt": "2026-03-18T15:12:45.878Z"
+  }
+]
