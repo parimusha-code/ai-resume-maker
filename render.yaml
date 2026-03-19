@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: ai-resume-maker-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: "cd Backend && npm ci"
+    startCommand: "cd Backend && node src/server.js"
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: JWT_SECRET
+        sync: false
