@@ -1,0 +1,33 @@
+========================================
+AI RESUME MAKER - FINAL SUBMISSION
+========================================
+
+PROJECT LINKS:
+
+1. Frontend Application:
+   https://ai-resume-builder-iota-peach.vercel.app
+
+2. GitHub Repository:
+   https://github.com/parimusha-code/ai-resume-maker
+
+3. Backend API:
+   https://ai-resume-builder-6-iwgz.onrender.com
+
+TEST CREDENTIALS:
+Email: parimusha2005@gmail.com
+Password: Usha@0616
+
+========================================
+TECHNOLOGIES:
+- Frontend: Next.js 14, React 18, TypeScript, Tailwind CSS, NextAuth
+- Backend: Node.js, Express, OpenAI API
+- Deployment: Vercel, Render
+
+FEATURES:
+✅ User Authentication
+✅ Resume Builder (CRUD)
+✅ AI Content Generation
+✅ Real-time Saving
+✅ Responsive Design
+
+========================================
