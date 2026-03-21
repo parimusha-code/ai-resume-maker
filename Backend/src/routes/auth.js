@@ -54,4 +54,23 @@ router.post('/login', async (req, res) => {
   }
 });
 
+// Google Login
+router.post('/google', async (req, res) => {
+  try {
+    const { email, name } = req.body;
+    if (!email) return res.status(400).json({ message: 'Email required' });
+
+    let user = db.findUser(email);
+    if (!user) {
+      user = { id: Date.now().toString(), email, name, authProvider: 'google', createdAt: new Date() };
+      db.addUser(user);
+    }
+
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET || 'secret');
+    res.json({ message: 'Login successful', token, user: { id: user.id, email: user.email } });
+  } catch (error) {
+    res.status(500).json({ message: 'Google login failed', error: error.message });
+  }
+});
+
 module.exports = router;

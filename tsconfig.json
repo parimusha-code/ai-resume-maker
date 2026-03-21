@@ -30,5 +30,16 @@
     ".next/dev/types/**/*.ts",
     "**/*.mts"
   ],
-  "exclude": ["node_modules"]
+  "exclude": [
+    "node_modules",
+    "ai-job-search",
+    "ai-resume",
+    "ai-youtube-summariser",
+    "notes-saver",
+    "notes-saver-main",
+    "Frontend",
+    "Backend"
+  ]
 }
+
+

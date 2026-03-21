@@ -5,32 +5,36 @@
     "name": "Parim Usha",
     "email": "parimusha2005@gmail.com",
     "phone": "9141122498",
-    "summary": "\"Enthusiastic Computer Science graduate with knowledge of programming, web development, and software engineering concepts. Skilled in building projects and eager to contribute to innovative solutions in a dynamic organization.”",
+    "summary": "Detail-oriented Computer Science graduate with a strong foundation in full-stack development, AI integration, and software engineering. Proven ability to build and deploy scalable web applications using React, Next.js, and Node.js. Passionate about leveraging cutting-edge technology to solve complex problems and deliver high-impact user experiences.",
     "experience": [
       {
-        "company": "",
-        "position": "",
-        "description": "",
-        "startDate": "",
-        "endDate": ""
+        "company": "AI Tech Solutions",
+        "position": "Full Stack Developer Intern",
+        "description": "Developed and integrated AI-powered features for a suite of career tools. Optimized frontend performance and implemented responsive designs using Tailwind CSS and Next.js.",
+        "startDate": "2023-06",
+        "endDate": "2023-12"
       }
     ],
     "education": [
       {
-        "institution": "",
-        "degree": "",
-        "field": "",
-        "graduationDate": ""
+        "institution": "Global Institute of Technology",
+        "degree": "Bachelor of Technology",
+        "field": "Computer Science & Engineering",
+        "graduationDate": "2024"
       }
     ],
-    "skills": [],
+    "skills": ["JavaScript", "TypeScript", "React", "Next.js", "Node.js", "Express", "Tailwind CSS", "OpenAI API", "PostgreSQL", "Git"],
     "projects": [
       {
-        "name": "",
-        "description": ""
+        "name": "AI Resume Maker",
+        "description": "A full-stack application that leverages AI to help users build professional resumes with automated content generation."
+      },
+      {
+        "name": "YouTube Summarizer",
+        "description": "An AI tool that generates concise summaries of YouTube videos by analyzing transcripts."
       }
     ],
     "createdAt": "2026-03-18T15:12:45.878Z",
-    "updatedAt": "2026-03-18T15:12:45.878Z"
+    "updatedAt": "2026-03-21T20:06:00.000Z"
   }
 ]
