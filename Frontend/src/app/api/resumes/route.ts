@@ -1,55 +1,85 @@
-import { getServerSession } from "next-auth/next";
-import { NextRequest, NextResponse } from "next/server";
+import { NextResponse } from "next/server";
+import { getServerSession } from "next-auth";
+import { authOptions } from "@/lib/auth";
+import fs from "fs";
+import path from "path";
 
-export async function GET(request: NextRequest) {
-  try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+const getDataPath = () => {
+    const paths = [
+        path.join(process.cwd(), "data", "resumes.json"),
+        path.join(process.cwd(), "..", "data", "resumes.json")
+    ];
+    for (const p of paths) {
+        if (fs.existsSync(p)) return p;
     }
+    return paths[0];
+};
 
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
-    const response = await fetch(`${backendUrl}/api/resumes`, {
-      headers: {
-        "x-user-id": session.user.email,
-      },
-    });
+const DATA_PATH = getDataPath();
 
-    const data = await response.json();
-    return NextResponse.json(data);
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Failed to fetch resumes", error: (error as Error).message },
-      { status: 500 }
-    );
-  }
+function getResumes() {
+    if (!fs.existsSync(DATA_PATH)) return [];
+    try {
+        const data = fs.readFileSync(DATA_PATH, "utf8");
+        return JSON.parse(data);
+    } catch (e) {
+        return [];
+    }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const session = await getServerSession();
-    if (!session?.user?.email) {
-      return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+function saveResumes(resumes: any[]) {
+    const dir = path.dirname(DATA_PATH);
+    if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
+    fs.writeFileSync(DATA_PATH, JSON.stringify(resumes, null, 2), "utf8");
+}
+
+export async function GET(req: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
+
+        const email = session.user.email;
+        const resumes = getResumes();
+        const userResumes = resumes.filter((r: any) => r.userId === email);
+
+        return NextResponse.json({ resumes: userResumes }, { status: 200 });
+    } catch (error: any) {
+        console.error("Get Resumes Error:", error);
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
     }
+}
 
-    const body = await request.json();
-    const backendUrl = process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000";
+export async function POST(req: Request) {
+    try {
+        const session = await getServerSession(authOptions);
+        if (!session?.user?.email) {
+            return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+        }
 
-    const response = await fetch(`${backendUrl}/api/resumes`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-user-id": session.user.email,
-      },
-      body: JSON.stringify(body),
-    });
+        const body = await req.json();
+        const resumes = getResumes();
+        
+        const newResume = {
+            ...body,
+            id: String(Date.now()),
+            userId: session.user.email,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString()
+        };
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
-  } catch (error) {
-    return NextResponse.json(
-      { message: "Failed to save resume", error: (error as Error).message },
-      { status: 500 }
-    );
-  }
+        resumes.push(newResume);
+        saveResumes(resumes);
+
+        return NextResponse.json({ 
+            success: true, 
+            message: "Resume saved successfully",
+            id: newResume.id,
+            resume: newResume
+        }, { status: 200 });
+    } catch (error: any) {
+        console.error("Save Resume Error:", error);
+        return NextResponse.json({ message: "Internal Server Error" }, { status: 500 });
+    }
 }

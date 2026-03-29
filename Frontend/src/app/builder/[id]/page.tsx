@@ -1,13 +1,15 @@
 "use client";
 
 import { useSession } from "next-auth/react";
-import { useRouter } from "next/navigation";
+import { useRouter, useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 import axios from "axios";
 
-export default function BuilderPage() {
+export default function EditBuilderPage() {
   const { data: session, status } = useSession();
   const router = useRouter();
+  const params = useParams();
+  const id = params.id as string;
 
   const [resumeData, setResumeData] = useState({
     name: "",
@@ -19,14 +21,31 @@ export default function BuilderPage() {
     skills: [] as string[],
     projects: [{ name: "", description: "" }],
   });
+  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [generating, setGenerating] = useState(false);
 
   useEffect(() => {
     if (status === "unauthenticated") {
       router.push("/login");
+    } else if (status === "authenticated" && id) {
+      fetchResume();
     }
-  }, [status, router]);
+  }, [status, router, id]);
+
+  const fetchResume = async () => {
+    try {
+      const response = await axios.get(`/api/resumes/${id}`);
+      if (response.data.resume) {
+        setResumeData(response.data.resume);
+      }
+    } catch (error) {
+      console.error("Failed to fetch resume:", error);
+      alert("Failed to load resume data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>, field: string) => {
     setResumeData({ ...resumeData, [field]: e.target.value });
@@ -62,18 +81,18 @@ export default function BuilderPage() {
   const handleSave = async () => {
     setSaving(true);
     try {
-      await axios.post("/api/resumes", resumeData);
-      alert("Resume saved successfully!");
+      await axios.put(`/api/resumes/${id}`, resumeData);
+      alert("Resume updated successfully!");
       router.push("/dashboard");
     } catch (error) {
-      alert("Failed to save resume");
+      alert("Failed to update resume");
     } finally {
       setSaving(false);
     }
   };
 
-  if (status === "loading") {
-    return <div className="flex items-center justify-center min-h-screen text-lg">Loading...</div>;
+  if (status === "loading" || loading) {
+    return <div className="flex items-center justify-center min-h-screen">Loading Resume...</div>;
   }
 
   return (
@@ -81,14 +100,17 @@ export default function BuilderPage() {
       <div className="bg-white shadow-lg">
         <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
           <div className="flex items-center gap-4">
-             <h1 className="text-2xl font-bold text-indigo-600">AI Resume Builder</h1>
+            <button onClick={() => router.back()} className="text-gray-500 hover:text-gray-700">
+               ← Back
+            </button>
+            <h1 className="text-2xl font-bold text-indigo-600">Edit Resume</h1>
           </div>
           <button
             onClick={handleSave}
             disabled={saving}
-            className="bg-indigo-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-indigo-700 disabled:opacity-50"
+            className="bg-green-600 text-white px-6 py-2 rounded-lg font-semibold hover:bg-green-700 disabled:opacity-50"
           >
-            {saving ? "Saving..." : "Save Resume"}
+            {saving ? "Saving..." : "Update Resume"}
           </button>
         </div>
       </div>
@@ -104,21 +126,21 @@ export default function BuilderPage() {
                   placeholder="Full Name"
                   value={resumeData.name}
                   onChange={(e) => handleInputChange(e, "name")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
                 <input
                   type="email"
                   placeholder="Email"
                   value={resumeData.email}
                   onChange={(e) => handleInputChange(e, "email")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
                 <input
                   type="tel"
                   placeholder="Phone"
                   value={resumeData.phone}
                   onChange={(e) => handleInputChange(e, "phone")}
-                  className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600"
                 />
               </div>
             </div>
@@ -129,7 +151,7 @@ export default function BuilderPage() {
                 <button
                   onClick={() => handleGenerateAI("summary")}
                   disabled={generating}
-                  className="bg-blue-500 text-white px-4 py-2 rounded text-sm disabled:opacity-50"
+                  className="bg-blue-500 text-white px-4 py-2 rounded text-sm hover:bg-blue-600 disabled:opacity-50"
                 >
                   {generating ? "Generating..." : "Generate with AI"}
                 </button>
@@ -138,7 +160,7 @@ export default function BuilderPage() {
                 placeholder="Write your professional summary..."
                 value={resumeData.summary}
                 onChange={(e) => handleInputChange(e, "summary")}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg h-24"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-600 h-24"
               />
             </div>
 
@@ -156,7 +178,7 @@ export default function BuilderPage() {
                 </button>
               </div>
               {resumeData.experience.map((exp, index) => (
-                <div key={index} className="mb-6 pb-6 border-b last:border-b-0">
+                <div key={index} className="mb-6 pb-6 border-b last:border-b-0 relative group">
                   <div className="grid grid-cols-2 gap-4 mb-3">
                     <input
                       type="text"
@@ -177,10 +199,23 @@ export default function BuilderPage() {
                     placeholder="Job Description"
                     value={exp.description}
                     onChange={(e) => handleArrayChange(e, "experience", index, "description")}
-                    className="w-full px-4 py-2 border border-gray-300 rounded-lg h-20"
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg h-20 mb-3"
                   />
                 </div>
               ))}
+            </div>
+
+            <div className="bg-white rounded-lg shadow p-6">
+               <h2 className="text-2xl font-bold text-gray-800 mb-4">Skills</h2>
+               <textarea
+                placeholder="List your skills..."
+                value={resumeData.skills.join(", ")}
+                onChange={(e) => {
+                  const skills = e.target.value.split(",").map(s => s.trim());
+                  setResumeData({ ...resumeData, skills });
+                }}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg h-24"
+              />
             </div>
           </div>
 
@@ -194,6 +229,15 @@ export default function BuilderPage() {
                 <section className="mb-4">
                     <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Summary</h4>
                     <p className="text-xs text-gray-700 italic">{resumeData.summary}</p>
+                </section>
+                <section>
+                    <h4 className="text-xs font-bold text-indigo-600 uppercase tracking-widest mb-2">Experience</h4>
+                    {resumeData.experience.slice(0, 2).map((exp, i) => (
+                        <div key={i} className="mb-2">
+                            <h5 className="text-xs font-bold">{exp.position}</h5>
+                            <p className="text-[10px] text-gray-500">{exp.company}</p>
+                        </div>
+                    ))}
                 </section>
             </div>
           </div>
