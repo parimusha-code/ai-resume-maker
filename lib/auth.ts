@@ -1,16 +1,21 @@
 import { NextAuthOptions } from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
 import axios from "axios";
+import GoogleProvider from "next-auth/providers/google";
 
 export const authOptions: NextAuthOptions = {
   providers: [
+    GoogleProvider({
+      clientId: process.env.GOOGLE_CLIENT_ID || "",
+      clientSecret: process.env.GOOGLE_CLIENT_SECRET || "",
+    }),
     CredentialsProvider({
       name: "Credentials",
       credentials: {
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" }
       },
-      async authorize(credentials) {
+      async authorize(credentials: Record<"email" | "password", string> | undefined) {
         if (!credentials?.email || !credentials?.password) return null;
 
         try {
@@ -36,6 +41,26 @@ export const authOptions: NextAuthOptions = {
     }),
   ],
   callbacks: {
+    async signIn({ user, account }: { user: any, account: any }) {
+      if (account?.provider === "google") {
+        try {
+          const response = await axios.post(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/auth/google`, {
+            email: user.email,
+            name: user.name,
+          });
+          if (response.data && response.data.token) {
+            (user as any).token = response.data.token;
+            (user as any).id = response.data.user.id;
+            return true;
+          }
+          return false;
+        } catch (error) {
+          console.error("Google verify error:", error);
+          return false;
+        }
+      }
+      return true;
+    },
     async jwt({ token, user }) {
       if (user) {
         token.id = user.id;
